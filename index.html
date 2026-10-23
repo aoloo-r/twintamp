@@ -2,80 +2,286 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TwinTAMP</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<meta name="description" content="TwinTAMP plans tasks over deformable and rigid objects inside a physics twin built from one RGB-D capture, then executes the plan on a real robot.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-  :root { --ink:#1d2329; --muted:#5b6670; --rule:#d9dee2; --bg:#fbfcfc; --accent:#2f6f8f; --slot:#eef2f4; }
+  :root {
+    --ground:#f6f5f2; --panel:#ffffff; --ink:#1b2126; --muted:#5d666d; --rule:#dedbd4;
+    --real:#b5651d;      /* the physical world: kraft, cardboard */
+    --sim:#1f6f8b;       /* the twin */
+    --real-soft:#f3e6d8; --sim-soft:#dcebf0;
+    --code:#efede8;
+    color-scheme: light;
+  }
   @media (prefers-color-scheme: dark) {
-    :root { --ink:#e4e8eb; --muted:#9aa5ad; --rule:#2e363c; --bg:#14181b; --accent:#7fb6d1; --slot:#1d2327; }
+    :root:not([data-theme="light"]) {
+      --ground:#121518; --panel:#191d21; --ink:#e6e9eb; --muted:#9aa3a9; --rule:#2b3137;
+      --real:#e0a36a; --sim:#6fbcd6; --real-soft:#2b2219; --sim-soft:#16262d; --code:#1e2327;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#121518; --panel:#191d21; --ink:#e6e9eb; --muted:#9aa3a9; --rule:#2b3137;
+    --real:#e0a36a; --sim:#6fbcd6; --real-soft:#2b2219; --sim-soft:#16262d; --code:#1e2327;
+    color-scheme: dark;
   }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 "IBM Plex Sans", system-ui, sans-serif; }
-  main { max-width:880px; margin:0 auto; padding-block:48px 64px; padding-inline:20px; display:flex; flex-direction:column; gap:40px; }
-  h1 { font:600 clamp(28px,5vw,40px)/1.15 "Source Serif 4", Georgia, serif; margin:0; text-wrap:balance; }
-  h2 { font:600 22px/1.3 "Source Serif 4", Georgia, serif; margin:0 0 12px; }
-  .sub { color:var(--muted); font-size:18px; margin:8px 0 0; text-wrap:balance; }
-  .authors { margin-top:16px; }
-  .links { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
-  .links a { color:var(--accent); text-decoration:none; border:1px solid var(--rule); padding:6px 14px; border-radius:4px; }
-  .links a:hover, .links a:focus-visible { border-color:var(--accent); outline:none; }
-  p { max-width:68ch; margin:0; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
-  figure { margin:0; }
-  .slot { aspect-ratio:16/9; max-width:100%; background:var(--slot); border:1px dashed var(--rule); display:grid; place-items:center; color:var(--muted); font-size:14px; }
-  video { width:100%; max-width:100%; display:block; }
-  figcaption { color:var(--muted); font-size:14px; margin-top:6px; }
-  pre { background:var(--slot); padding:14px; overflow-x:auto; font-size:13px; border-radius:4px; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--ground); color:var(--ink);
+         font:17px/1.65 "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  img { max-width:100%; display:block; }
+  a { color:var(--sim); }
+  .wrap { max-width:1080px; margin:0 auto; padding-inline:20px; }
+  .measure { max-width:66ch; }
+
+  /* header */
+  header { padding-block:72px 40px; }
+  .tag { font:500 12px/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing:.08em; text-transform:uppercase;
+         color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .tag b { color:var(--sim); font-weight:500; }
+  h1 { font:600 clamp(34px,6vw,60px)/1.05 "Newsreader", Georgia, serif; letter-spacing:-.01em; margin:18px 0 0; text-wrap:balance; }
+  h1 .name { color:var(--sim); }
+  .lede { font-size:clamp(18px,2.2vw,21px); color:var(--muted); margin:18px 0 0; text-wrap:pretty; }
+  .authors { margin-top:22px; min-height:1.65em; color:var(--muted); }
+  .links { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+  .btn { font:500 14px/1 "Instrument Sans", sans-serif; text-decoration:none; color:var(--ink);
+         border:1px solid var(--rule); background:var(--panel); padding:11px 16px; border-radius:999px;
+         display:inline-flex; gap:8px; align-items:center; }
+  .btn[aria-disabled="true"] { color:var(--muted); cursor:default; }
+  .btn:focus-visible { outline:2px solid var(--sim); outline-offset:2px; }
+
+  /* teaser strip: real -> twin -> plan */
+  .strip { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:start; gap:14px; margin-top:8px; }
+  .strip figure { margin:0; }
+  .frame { border-radius:6px; overflow:hidden; border:1px solid var(--rule); background:var(--panel); aspect-ratio:4/3; }
+  .frame img { width:100%; height:100%; object-fit:cover; }
+  .strip figcaption { margin-top:10px; font-size:14px; color:var(--muted); }
+  .strip figcaption strong { display:block; color:var(--ink); font-weight:600; font-size:15px; }
+  .k { font:500 11px/1 "JetBrains Mono", monospace; letter-spacing:.08em; text-transform:uppercase; }
+  .k.real { color:var(--real); } .k.sim { color:var(--sim); }
+  .arrow { color:var(--muted); font-size:22px; margin-top:clamp(60px, 9vw, 108px); }
+  @media (max-width:760px) {
+    .strip { grid-template-columns:1fr; }
+    .arrow { transform:rotate(90deg); justify-self:center; margin-top:0; }
+  }
+
+  section { padding-block:56px; border-top:1px solid var(--rule); }
+  h2 { font:600 clamp(24px,3vw,30px)/1.2 "Newsreader", Georgia, serif; margin:0 0 14px; text-wrap:balance; }
+  .eyebrow { font:500 12px/1 "JetBrains Mono", monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+  p { margin:0 0 14px; }
+
+  /* idea: two columns */
+  .two { display:grid; grid-template-columns:1.1fr 1fr; gap:48px; align-items:start; }
+  @media (max-width:860px) { .two { grid-template-columns:1fr; gap:28px; } }
+  .contrast { display:grid; gap:12px; }
+  .row { background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px; }
+  .row .who { font:500 12px/1.4 "JetBrains Mono", monospace; color:var(--muted); }
+  .row .what { margin-top:4px; }
+  .row.ours { border-color:var(--sim); background:var(--sim-soft); }
+  .row.ours .who { color:var(--sim); }
+
+  /* pipeline diagram */
+  .diagram { margin-top:24px; overflow-x:auto; }
+  .diagram svg { width:100%; min-width:640px; height:auto; color:var(--ink); }
+  .diagram figcaption { color:var(--muted); font-size:14px; margin-top:8px; }
+
+  /* real2sim gallery */
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px; }
+  .qa { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px; }
+  @media (max-width:760px) { .pair { grid-template-columns:1fr; } .qa { grid-template-columns:repeat(2,1fr); } }
+  .shot { margin:0; }
+  .shot img { border-radius:6px; border:1px solid var(--rule); width:100%; }
+  .shot figcaption { font-size:14px; color:var(--muted); margin-top:8px; }
+  .iou { font:500 13px/1 "JetBrains Mono", monospace; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .pair .shot img { aspect-ratio:4/3; object-fit:cover; }
+  .qa .shot img { background:#000; aspect-ratio:32/22; object-fit:cover; }
+
+  /* results / videos */
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:24px; }
+  @media (max-width:860px) { .grid3 { grid-template-columns:1fr; } }
+  .slot { aspect-ratio:16/9; border-radius:6px; border:1px dashed var(--rule); background:var(--panel);
+          display:grid; place-items:center; color:var(--muted); font-size:14px; text-align:center; padding:12px; }
+  .pending { font:500 12px/1 "JetBrains Mono", monospace; color:var(--real); letter-spacing:.06em; text-transform:uppercase; }
+
+  pre { background:var(--code); border-radius:6px; padding:16px; overflow-x:auto;
+        font:13px/1.55 "JetBrains Mono", ui-monospace, monospace; margin:0; }
+  footer { padding-block:40px 64px; color:var(--muted); font-size:14px; border-top:1px solid var(--rule); }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Planning Inside the Twin</h1>
-    <p class="sub">TwinTAMP: Real2Sim2Real task and motion planning for deformable and rigid objects</p>
-    <div class="authors">Austine Roy Oloo <!-- TODO co-authors, affiliation --></div>
-    <div class="links">
-      <!-- <a href="paper.pdf">Extended abstract (PDF)</a>  add once the results are filled -->
-      <!-- <a href="TODO">Code</a> -->
+
+<header class="wrap">
+  <div class="tag"><b>CoRL 2026</b><span>Late-Breaking Results</span><span>&middot;</span><span>Real2Sim2Real</span></div>
+  <h1>Planning Inside the Twin: <span class="name">TwinTAMP</span></h1>
+  <p class="lede measure">Real2Sim2Real task and motion planning for deformable and rigid objects. One RGB-D capture
+  becomes a physics twin, the planner searches over folds, coils and rigid placements inside it, and the plan runs on a
+  real robot arm.</p>
+  <div class="authors" aria-label="Authors"><!-- authors to be added --></div>
+  <div class="links">
+    <span class="btn" aria-disabled="true">Extended abstract &middot; soon</span>
+    <span class="btn" aria-disabled="true">Code &middot; soon</span>
+    <a class="btn" href="#cite">Cite</a>
+  </div>
+</header>
+
+<div class="wrap" style="padding-bottom:56px">
+  <div class="strip">
+    <figure>
+      <div class="frame"><img src="img/capture.jpg" alt="RGB-D capture of a tabletop with a cardboard box, a long-sleeved shirt, a blue cup and a black eraser" loading="eager"></div>
+      <figcaption><span class="k real">Real</span><strong>One RGB-D capture</strong>A cluttered tabletop: box, shirt, cup, eraser.</figcaption>
+    </figure>
+    <div class="arrow" aria-hidden="true">&rarr;</div>
+    <figure>
+      <div class="frame"><img src="img/segmentation.jpg" alt="Segmentation masks for the box, shirt, cup and eraser" loading="eager"></div>
+      <figcaption><span class="k sim">Twin</span><strong>Objects and dynamics</strong>Rigid meshes and a calibrated cloth model, each gated against the photo.</figcaption>
+    </figure>
+    <div class="arrow" aria-hidden="true">&rarr;</div>
+    <figure>
+      <div class="frame"><img src="img/sim_foldpack.jpg" alt="Simulated robot after packing the shirt, cup and eraser into the box" loading="eager"></div>
+      <figcaption><span class="k sim">Plan</span><strong>Fold and pack, planned in the twin</strong>Shirt, cup and eraser end inside the box.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<section>
+  <div class="wrap two">
+    <div class="measure">
+      <div class="eyebrow">The problem</div>
+      <h2>Deformable effects can&rsquo;t be written down in advance</h2>
+      <p>Task and motion planning works when every action has a known effect. That holds for rigid objects. It does
+      not hold for cloth or rope: where a fold lands or how a coil settles depends on the material, the starting
+      configuration and the contacts made during the motion.</p>
+      <p>When deformable and rigid objects share a task, that uncertainty spreads. The shape a deformable object takes
+      decides how much space, support and clearance remain for the rigid objects after it. A plan that ignores
+      deformable dynamics can fail even when every rigid step is valid.</p>
+      <p><strong>TwinTAMP</strong> uses a physics twin of the real scene as the planner&rsquo;s effect model, so
+      deformable outcomes and rigid placements are decided in the same search.</p>
     </div>
-  </header>
-
-  <section>
-    <h2>Overview</h2>
-    <p>TwinTAMP builds a physics twin of a tabletop scene from a single RGB-D capture, with reconstructed rigid
-    objects and calibrated cloth and rope models. It then plans a whole packing task inside that twin, choosing folds,
-    coils and rigid placements in one search and evaluating each deformable effect with a physics rollout. The plan
-    runs on a real UR5e, and a second capture checks whether the twin predicted the real outcome.</p>
-  </section>
-
-  <section>
-    <h2>Real robot</h2>
-    <div class="grid">
-      <figure><div class="slot">Towel fold and pack (real)</div><figcaption>Real UR5e, towel with rigid objects.</figcaption></figure>
-      <figure><div class="slot">Rope and blocks into a box (real)</div><figcaption>Real UR5e, rope coil with blocks.</figcaption></figure>
-      <figure><div class="slot">Cup to plate (real)</div><figcaption>Real UR5e, rigid pick and place.</figcaption></figure>
+    <div class="contrast" aria-label="How twins are used in related work">
+      <div class="eyebrow">How the twin is used</div>
+      <div class="row"><div class="who">Rigid-scene twins</div><div class="what">Collision geometry for motion planning.</div></div>
+      <div class="row"><div class="who">Twin + vision-language model</div><div class="what">Pick the best of several simulated outcomes.</div></div>
+      <div class="row"><div class="who">Cloth twins as data engines</div><div class="what">Generate demonstrations to train a folding policy.</div></div>
+      <div class="row"><div class="who">Agentic Real2Sim</div><div class="what">Build the simulator from video; check renders against photos.</div></div>
+      <div class="row ours"><div class="who">TwinTAMP</div><div class="what">The effect model of a task planner over deformable <em>and</em> rigid objects, checked against the real outcome.</div></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <h2>Twin and plan</h2>
-    <div class="grid">
-      <figure><div class="slot">Capture to twin</div><figcaption>One RGB-D capture to a physics twin.</figcaption></figure>
-      <figure><div class="slot">Plan executed in the twin</div><figcaption>Dual-arm fold, pack and place in simulation.</figcaption></figure>
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Method</div>
+    <h2>From capture to plan to robot, and back</h2>
+    <figure class="diagram">
+      <svg viewBox="0 0 1000 290" role="img" aria-label="Pipeline: an RGB-D capture is reconstructed into a physics twin; a task and motion planner searches symbolically and evaluates deformable effects by physics rollouts in the twin; the plan executes on a UR5e; a second capture scores the real outcome with the planner's own predicates and compares it with the twin's prediction.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g font-family="Instrument Sans, sans-serif" font-size="14" fill="currentColor">
+          <!-- capture -->
+          <rect x="10" y="70" width="170" height="90" rx="6" fill="none" stroke="var(--real)" stroke-width="2"/>
+          <text x="95" y="105" text-anchor="middle" font-weight="600">RGB-D capture</text>
+          <text x="95" y="128" text-anchor="middle" fill="var(--muted)" font-size="12">one frame, calibrated</text>
+          <!-- twin -->
+          <rect x="250" y="40" width="200" height="150" rx="6" fill="var(--sim-soft)" stroke="var(--sim)" stroke-width="2"/>
+          <text x="350" y="72" text-anchor="middle" font-weight="600">Physics twin</text>
+          <text x="350" y="100" text-anchor="middle" font-size="12" fill="var(--muted)">SAM 2 masks, SAM 3D meshes</text>
+          <text x="350" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">IoU gate vs photo</text>
+          <text x="350" y="140" text-anchor="middle" font-size="12" fill="var(--muted)">cloth / rope in Newton VBD</text>
+          <text x="350" y="160" text-anchor="middle" font-size="12" fill="var(--muted)">calibrated per material</text>
+          <!-- planner -->
+          <rect x="520" y="40" width="210" height="150" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="625" y="72" text-anchor="middle" font-weight="600">Joint TAMP</text>
+          <text x="625" y="100" text-anchor="middle" font-size="12" fill="var(--muted)">fold · coil · pack · pick-place</text>
+          <text x="625" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">shared box height-map</text>
+          <text x="625" y="140" text-anchor="middle" font-size="12" fill="var(--muted)">A* on execution time</text>
+          <text x="625" y="160" text-anchor="middle" font-size="12" fill="var(--muted)">lazy physics rollouts</text>
+          <!-- robot -->
+          <rect x="800" y="70" width="180" height="90" rx="6" fill="none" stroke="var(--real)" stroke-width="2"/>
+          <text x="890" y="105" text-anchor="middle" font-weight="600">Real UR5e</text>
+          <text x="890" y="128" text-anchor="middle" fill="var(--muted)" font-size="12">Cartesian-first MoveIt</text>
+          <!-- arrows -->
+          <line x1="180" y1="115" x2="246" y2="115" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="213" y="105" text-anchor="middle" font-size="11" fill="var(--muted)">reconstruct</text>
+          <path d="M520,95 C490,95 490,95 454,95" fill="none" stroke="var(--sim)" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="487" y="86" text-anchor="middle" font-size="11" fill="var(--sim)">rollout</text>
+          <path d="M454,140 C490,140 490,140 516,140" fill="none" stroke="var(--sim)" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="487" y="158" text-anchor="middle" font-size="11" fill="var(--sim)">effect</text>
+          <line x1="730" y1="115" x2="796" y2="115" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="763" y="105" text-anchor="middle" font-size="11" fill="var(--muted)">execute</text>
+          <!-- feedback loop -->
+          <path d="M890,160 L890,255 L350,255 L350,194" fill="none" stroke="var(--real)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+          <text x="620" y="280" text-anchor="middle" font-size="13" fill="var(--real)">second capture: score the real outcome with the planner's predicates, compare with the twin's prediction</text>
+        </g>
+      </svg>
+      <figcaption>Deformable effects come from physics rollouts in the twin; rigid placements are grounded on the
+      predicted deformable state. After execution, a second capture checks whether the twin predicted what happened.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Real &rarr; Sim</div>
+    <h2>Every object is checked against the photo</h2>
+    <p class="measure">SAM 2 segments the capture and SAM 3D reconstructs each object. Each reconstruction is
+    rendered from the camera and compared with its mask; objects below the IoU threshold are rejected.</p>
+    <div class="qa">
+      <figure class="shot"><img src="img/qa_box.jpg" alt="Box reconstruction rendered over its mask outline" loading="lazy"><figcaption>Box <span class="iou">IoU 0.80</span></figcaption></figure>
+      <figure class="shot"><img src="img/qa_shirt.jpg" alt="Shirt reconstruction rendered over its mask outline" loading="lazy"><figcaption>Shirt <span class="iou">IoU 0.67</span></figcaption></figure>
+      <figure class="shot"><img src="img/qa_cup.jpg" alt="Cup reconstruction rendered over its mask outline" loading="lazy"><figcaption>Cup <span class="iou">IoU 0.81</span></figcaption></figure>
+      <figure class="shot"><img src="img/qa_eraser.jpg" alt="Eraser reconstruction rendered over its mask outline" loading="lazy"><figcaption>Eraser <span class="iou">IoU 0.63</span></figcaption></figure>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <h2>Citation</h2>
-<pre>@misc{oloo2026twintamp,
-  title  = {Planning Inside the Twin: Real2Sim2Real Task and Motion
-            Planning for Deformable and Rigid Objects},
-  author = {Oloo, Austine Roy},
-  note   = {CoRL 2026 Late-Breaking Results},
-  year   = {2026}
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Planning in the twin</div>
+    <h2>Folds, packing and rigid placements in one plan</h2>
+    <div class="pair">
+      <figure class="shot"><img src="img/sim_foldpack.jpg" alt="Twin of the captured scene after the plan: shirt, cup and eraser in the box" loading="lazy"><figcaption>The captured scene after the plan: shirt folded and packed, cup and eraser placed in the box.</figcaption></figure>
+      <figure class="shot"><img src="img/sim_pack_mixed.jpg" alt="Simulated box containing a folded shirt, two folded towels and three blocks" loading="lazy"><figcaption>A mixed scene: one shirt and two towels folded to the level the box needs, three blocks placed on the remaining space.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Sim &rarr; Real</div>
+    <h2>On the real robot</h2>
+    <p class="measure">Each plan runs on a UR5e with a Robotiq Hand-E. A second capture scores the outcome with the
+    planner&rsquo;s own predicates, so every trial also tells us whether the twin predicted it.</p>
+    <div class="grid3">
+      <div class="slot"><div><div class="pending">Video coming</div>Towel: fold and pack with rigid objects</div></div>
+      <div class="slot"><div><div class="pending">Video coming</div>Rope: coil into a box with blocks</div></div>
+      <div class="slot"><div><div class="pending">Video coming</div>Rigid: cup to plate</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="cite">
+  <div class="wrap">
+    <div class="eyebrow">Citation</div>
+    <h2>Cite</h2>
+<pre>@misc{twintamp2026,
+  title = {Planning Inside the Twin: Real2Sim2Real Task and Motion
+           Planning for Deformable and Rigid Objects},
+  note  = {CoRL 2026 Late-Breaking Results},
+  year  = {2026}
 }</pre>
-  </section>
-</main>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">TwinTAMP &middot; CoRL 2026 Late-Breaking Results</div>
+</footer>
+
 </body>
 </html>
