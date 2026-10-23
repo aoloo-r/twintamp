@@ -98,7 +98,7 @@
   .shot figcaption { font-size:14px; color:var(--muted); margin-top:8px; }
   .iou { font:500 13px/1 "JetBrains Mono", monospace; font-variant-numeric:tabular-nums; color:var(--ink); }
   .pair .shot img { aspect-ratio:4/3; object-fit:cover; }
-  .qa .shot img { background:#000; aspect-ratio:32/22; object-fit:cover; }
+  .qa .shot img { aspect-ratio:4/3; object-fit:cover; }
 
   /* results / videos */
   .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:24px; }
@@ -136,8 +136,8 @@
     </figure>
     <div class="arrow" aria-hidden="true">&rarr;</div>
     <figure>
-      <div class="frame"><img src="img/segmentation.jpg" alt="Segmentation masks for the box, shirt, cup and eraser" loading="eager"></div>
-      <figcaption><span class="k sim">Twin</span><strong>Objects and dynamics</strong>Rigid meshes and a calibrated cloth model, each gated against the photo.</figcaption>
+      <div class="frame"><img src="img/twin_scene.jpg" alt="Physics twin of the captured tabletop with box, shirt, cup and eraser in simulation" loading="eager"></div>
+      <figcaption><span class="k sim">Twin</span><strong>The scene in simulation</strong>Rigid objects and a simulated shirt, placed where the capture saw them.</figcaption>
     </figure>
     <div class="arrow" aria-hidden="true">&rarr;</div>
     <figure>
@@ -192,7 +192,7 @@
           <rect x="250" y="40" width="200" height="150" rx="6" fill="var(--sim-soft)" stroke="var(--sim)" stroke-width="2"/>
           <text x="350" y="72" text-anchor="middle" font-weight="600">Physics twin</text>
           <text x="350" y="100" text-anchor="middle" font-size="12" fill="var(--muted)">SAM 2 masks, SAM 3D meshes</text>
-          <text x="350" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">IoU gate vs photo</text>
+          <text x="350" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">checked against the photo</text>
           <text x="350" y="140" text-anchor="middle" font-size="12" fill="var(--muted)">cloth / rope in Newton VBD</text>
           <text x="350" y="160" text-anchor="middle" font-size="12" fill="var(--muted)">calibrated per material</text>
           <!-- planner -->
@@ -229,14 +229,15 @@
 <section>
   <div class="wrap">
     <div class="eyebrow">Real &rarr; Sim</div>
-    <h2>Every object is checked against the photo</h2>
-    <p class="measure">SAM 2 segments the capture and SAM 3D reconstructs each object. Each reconstruction is
-    rendered from the camera and compared with its mask; objects below the IoU threshold are rejected.</p>
+    <h2>Every object, rebuilt for simulation</h2>
+    <p class="measure">SAM 2 segments the capture and SAM 3D reconstructs each rigid object, placed in the robot frame
+    from depth and checked against the photo. Cloth is simulated rather than reconstructed: a cloth model is fitted
+    to the shirt&rsquo;s measured outline and settled under gravity.</p>
     <div class="qa">
-      <figure class="shot"><img src="img/qa_box.jpg" alt="Box reconstruction rendered over its mask outline" loading="lazy"><figcaption>Box <span class="iou">IoU 0.80</span></figcaption></figure>
-      <figure class="shot"><img src="img/qa_shirt.jpg" alt="Shirt reconstruction rendered over its mask outline" loading="lazy"><figcaption>Shirt <span class="iou">IoU 0.67</span></figcaption></figure>
-      <figure class="shot"><img src="img/qa_cup.jpg" alt="Cup reconstruction rendered over its mask outline" loading="lazy"><figcaption>Cup <span class="iou">IoU 0.81</span></figcaption></figure>
-      <figure class="shot"><img src="img/qa_eraser.jpg" alt="Eraser reconstruction rendered over its mask outline" loading="lazy"><figcaption>Eraser <span class="iou">IoU 0.63</span></figcaption></figure>
+      <figure class="shot"><img src="img/twin_box.jpg" alt="Simulated cardboard box" loading="lazy"><figcaption>Box</figcaption></figure>
+      <figure class="shot"><img src="img/twin_shirt.jpg" alt="Simulated long-sleeved shirt with its photo texture" loading="lazy"><figcaption>Shirt (simulated cloth)</figcaption></figure>
+      <figure class="shot"><img src="img/twin_cup.jpg" alt="Simulated blue cup" loading="lazy"><figcaption>Cup</figcaption></figure>
+      <figure class="shot"><img src="img/twin_eraser.jpg" alt="Simulated black eraser" loading="lazy"><figcaption>Eraser</figcaption></figure>
     </div>
   </div>
 </section>
