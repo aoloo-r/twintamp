@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TwinTAMP</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+  :root { --ink:#1d2329; --muted:#5b6670; --rule:#d9dee2; --bg:#fbfcfc; --accent:#2f6f8f; --slot:#eef2f4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e4e8eb; --muted:#9aa5ad; --rule:#2e363c; --bg:#14181b; --accent:#7fb6d1; --slot:#1d2327; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 "IBM Plex Sans", system-ui, sans-serif; }
+  main { max-width:880px; margin:0 auto; padding-block:48px 64px; padding-inline:20px; display:flex; flex-direction:column; gap:40px; }
+  h1 { font:600 clamp(28px,5vw,40px)/1.15 "Source Serif 4", Georgia, serif; margin:0; text-wrap:balance; }
+  h2 { font:600 22px/1.3 "Source Serif 4", Georgia, serif; margin:0 0 12px; }
+  .sub { color:var(--muted); font-size:18px; margin:8px 0 0; text-wrap:balance; }
+  .authors { margin-top:16px; }
+  .links { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
+  .links a { color:var(--accent); text-decoration:none; border:1px solid var(--rule); padding:6px 14px; border-radius:4px; }
+  .links a:hover, .links a:focus-visible { border-color:var(--accent); outline:none; }
+  p { max-width:68ch; margin:0; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+  figure { margin:0; }
+  .slot { aspect-ratio:16/9; max-width:100%; background:var(--slot); border:1px dashed var(--rule); display:grid; place-items:center; color:var(--muted); font-size:14px; }
+  video { width:100%; max-width:100%; display:block; }
+  figcaption { color:var(--muted); font-size:14px; margin-top:6px; }
+  pre { background:var(--slot); padding:14px; overflow-x:auto; font-size:13px; border-radius:4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Planning Inside the Twin</h1>
+    <p class="sub">TwinTAMP: Real2Sim2Real task and motion planning for deformable and rigid objects</p>
+    <div class="authors">Austine Roy Oloo <!-- TODO co-authors, affiliation --></div>
+    <div class="links">
+      <!-- <a href="paper.pdf">Extended abstract (PDF)</a>  add once the results are filled -->
+      <!-- <a href="TODO">Code</a> -->
+    </div>
+  </header>
+
+  <section>
+    <h2>Overview</h2>
+    <p>TwinTAMP builds a physics twin of a tabletop scene from a single RGB-D capture, with reconstructed rigid
+    objects and calibrated cloth and rope models. It then plans a whole packing task inside that twin, choosing folds,
+    coils and rigid placements in one search and evaluating each deformable effect with a physics rollout. The plan
+    runs on a real UR5e, and a second capture checks whether the twin predicted the real outcome.</p>
+  </section>
+
+  <section>
+    <h2>Real robot</h2>
+    <div class="grid">
+      <figure><div class="slot">Towel fold and pack (real)</div><figcaption>Real UR5e, towel with rigid objects.</figcaption></figure>
+      <figure><div class="slot">Rope and blocks into a box (real)</div><figcaption>Real UR5e, rope coil with blocks.</figcaption></figure>
+      <figure><div class="slot">Cup to plate (real)</div><figcaption>Real UR5e, rigid pick and place.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Twin and plan</h2>
+    <div class="grid">
+      <figure><div class="slot">Capture to twin</div><figcaption>One RGB-D capture to a physics twin.</figcaption></figure>
+      <figure><div class="slot">Plan executed in the twin</div><figcaption>Dual-arm fold, pack and place in simulation.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Citation</h2>
+<pre>@misc{oloo2026twintamp,
+  title  = {Planning Inside the Twin: Real2Sim2Real Task and Motion
+            Planning for Deformable and Rigid Objects},
+  author = {Oloo, Austine Roy},
+  note   = {CoRL 2026 Late-Breaking Results},
+  year   = {2026}
+}</pre>
+  </section>
+</main>
+</body>
+</html>
