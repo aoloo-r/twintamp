@@ -107,6 +107,16 @@
           display:grid; place-items:center; color:var(--muted); font-size:14px; text-align:center; padding:12px; }
   .pending { font:500 12px/1 "JetBrains Mono", monospace; color:var(--real); letter-spacing:.06em; text-transform:uppercase; }
 
+  .overview { margin:24px 0 0; }
+  .overview img { width:100%; border-radius:6px; border:1px solid var(--rule); background:#f6f5f2; }
+  .overview figcaption { color:var(--muted); font-size:14px; margin-top:10px; max-width:80ch; }
+  .tasks { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:28px; }
+  @media (max-width:900px) { .tasks { grid-template-columns:1fr; } }
+  .task { display:grid; gap:10px; align-content:start; }
+  .task .media img, .task .media video, .task .end { width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--rule); background:#ddd; }
+  .task .end { aspect-ratio:16/10; }
+  .task h3 { font:600 18px/1.3 "Newsreader", Georgia, serif; margin:6px 0 0; }
+  .task p { color:var(--muted); font-size:15px; margin:0; }
   pre { background:var(--code); border-radius:6px; padding:16px; overflow-x:auto;
         font:13px/1.55 "JetBrains Mono", ui-monospace, monospace; margin:0; }
   footer { padding-block:40px 64px; color:var(--muted); font-size:14px; border-top:1px solid var(--rule); }
@@ -176,52 +186,10 @@
   <div class="wrap">
     <div class="eyebrow">Method</div>
     <h2>From capture to plan to robot, and back</h2>
-    <figure class="diagram">
-      <svg viewBox="0 0 1000 290" role="img" aria-label="Pipeline: an RGB-D capture is reconstructed into a physics twin; a task and motion planner searches symbolically and evaluates deformable effects by physics rollouts in the twin; the plan executes on a UR5e; a second capture scores the real outcome with the planner's own predicates and compares it with the twin's prediction.">
-        <defs>
-          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
-          </marker>
-        </defs>
-        <g font-family="Instrument Sans, sans-serif" font-size="14" fill="currentColor">
-          <!-- capture -->
-          <rect x="10" y="70" width="170" height="90" rx="6" fill="none" stroke="var(--real)" stroke-width="2"/>
-          <text x="95" y="105" text-anchor="middle" font-weight="600">RGB-D capture</text>
-          <text x="95" y="128" text-anchor="middle" fill="var(--muted)" font-size="12">one frame, calibrated</text>
-          <!-- twin -->
-          <rect x="250" y="40" width="200" height="150" rx="6" fill="var(--sim-soft)" stroke="var(--sim)" stroke-width="2"/>
-          <text x="350" y="72" text-anchor="middle" font-weight="600">Physics twin</text>
-          <text x="350" y="100" text-anchor="middle" font-size="12" fill="var(--muted)">SAM 2 masks, SAM 3D meshes</text>
-          <text x="350" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">checked against the photo</text>
-          <text x="350" y="140" text-anchor="middle" font-size="12" fill="var(--muted)">cloth / rope in Newton VBD</text>
-          <text x="350" y="160" text-anchor="middle" font-size="12" fill="var(--muted)">calibrated per material</text>
-          <!-- planner -->
-          <rect x="520" y="40" width="210" height="150" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <text x="625" y="72" text-anchor="middle" font-weight="600">Joint TAMP</text>
-          <text x="625" y="100" text-anchor="middle" font-size="12" fill="var(--muted)">fold · coil · pack · pick-place</text>
-          <text x="625" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">shared box height-map</text>
-          <text x="625" y="140" text-anchor="middle" font-size="12" fill="var(--muted)">A* on execution time</text>
-          <text x="625" y="160" text-anchor="middle" font-size="12" fill="var(--muted)">lazy physics rollouts</text>
-          <!-- robot -->
-          <rect x="800" y="70" width="180" height="90" rx="6" fill="none" stroke="var(--real)" stroke-width="2"/>
-          <text x="890" y="105" text-anchor="middle" font-weight="600">Real UR5e</text>
-          <text x="890" y="128" text-anchor="middle" fill="var(--muted)" font-size="12">Cartesian-first MoveIt</text>
-          <!-- arrows -->
-          <line x1="180" y1="115" x2="246" y2="115" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
-          <text x="213" y="105" text-anchor="middle" font-size="11" fill="var(--muted)">reconstruct</text>
-          <path d="M520,95 C490,95 490,95 454,95" fill="none" stroke="var(--sim)" stroke-width="1.5" marker-end="url(#ah)"/>
-          <text x="487" y="86" text-anchor="middle" font-size="11" fill="var(--sim)">rollout</text>
-          <path d="M454,140 C490,140 490,140 516,140" fill="none" stroke="var(--sim)" stroke-width="1.5" marker-end="url(#ah)"/>
-          <text x="487" y="158" text-anchor="middle" font-size="11" fill="var(--sim)">effect</text>
-          <line x1="730" y1="115" x2="796" y2="115" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
-          <text x="763" y="105" text-anchor="middle" font-size="11" fill="var(--muted)">execute</text>
-          <!-- feedback loop -->
-          <path d="M890,160 L890,255 L350,255 L350,194" fill="none" stroke="var(--real)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
-          <text x="620" y="280" text-anchor="middle" font-size="13" fill="var(--real)">second capture: score the real outcome with the planner's predicates, compare with the twin's prediction</text>
-        </g>
-      </svg>
-      <figcaption>Deformable effects come from physics rollouts in the twin; rigid placements are grounded on the
-      predicted deformable state. After execution, a second capture checks whether the twin predicted what happened.</figcaption>
+    <figure class="overview">
+      <img src="img/overview.png" alt="Overview of Real2Sim2Real TAMP for rigid and deformable objects: real-world input (goal in natural language, RGB-D frame, object detection, SAM 2 and SAM 3D meshes), simulation (goal predicates, object concepts, twin of the scene in Newton, A* task search, cuRobo motion, Newton rollouts, execute and record), and evaluation on the real UR5e (plan to the arm, real robot, audit, baselines)." loading="lazy">
+      <figcaption>Simulated effects replace promised ones: every deformable action is rolled out in the twin before the
+      search trusts it. After execution on the real arm, the goal&rsquo;s predicates are audited on a fresh capture.</figcaption>
     </figure>
   </div>
 </section>
@@ -245,10 +213,28 @@
 <section>
   <div class="wrap">
     <div class="eyebrow">Planning in the twin</div>
-    <h2>Folds, packing and rigid placements in one plan</h2>
-    <div class="pair">
-      <figure class="shot"><img src="img/sim_foldpack.jpg" alt="Twin of the captured scene after the plan: shirt, cup and eraser in the box" loading="lazy"><figcaption>The captured scene after the plan: shirt folded and packed, cup and eraser placed in the box.</figcaption></figure>
-      <figure class="shot"><img src="img/sim_pack_mixed.jpg" alt="Simulated box containing a folded shirt, two folded towels and three blocks" loading="lazy"><figcaption>A mixed scene: one shirt and two towels folded to the level the box needs, three blocks placed on the remaining space.</figcaption></figure>
+    <h2>Folds, coils, pulls and rigid placements in one plan</h2>
+    <p class="measure">Each task mixes deformable and rigid objects. The planner decides how far to fold, where each
+    rigid object goes on what the deformable left behind, and in which order, then two arms execute the plan in the twin.</p>
+    <div class="tasks">
+      <article class="task">
+        <div class="media"><video src="video/task2.mp4" poster="img/task2_mid.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Two arms folding a shirt beside a box while blocks wait on the table"></video></div>
+        <img class="end" src="img/task2_end.jpg" alt="Box after the plan: shirt and towels folded inside, three blocks placed on top" loading="lazy">
+        <h3>Fold and pack, then place</h3>
+        <p>A shirt and two towels folded to the level the box needs, packed, then three blocks placed on the space left.</p>
+      </article>
+      <article class="task">
+        <div class="media"><video src="video/rope.mp4" poster="img/rope_mid.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Arm lowering a rope into a box in coils"></video></div>
+        <img class="end" src="img/rope_end.jpg" alt="Box after the plan: rope coiled on the floor, blocks placed beside and on it" loading="lazy">
+        <h3>Coil a rope, then place blocks</h3>
+        <p>The rope is laid in coils sized to the box floor; the blocks go where the coil leaves room.</p>
+      </article>
+      <article class="task">
+        <div class="media"><video src="video/sled.mp4" poster="img/sled_mid.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Towel on the table carrying a block toward the box"></video></div>
+        <img class="end" src="img/sled_end.jpg" alt="Box after the plan: mug, bottle, blocks and the folded towel inside" loading="lazy">
+        <h3>Pull the towel, pack what it carries</h3>
+        <p>Objects resting on a towel are brought closer by pulling the towel, then packed with it. Each pull is simulated before it is trusted.</p>
+      </article>
     </div>
   </div>
 </section>
